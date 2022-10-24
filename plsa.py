@@ -1,6 +1,6 @@
 import numpy as np
 import math
-#temp
+
 
 def normalize(input_matrix):
     """
