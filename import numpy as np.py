@@ -122,7 +122,7 @@ class Corpus(object):
             self.initialize_uniformly(number_of_topics)
 
     def expectation_step(self):
-        """ The E-step updates P(z | w, d) self.topic_prob
+        """ The E-step updates P(z | w, d)
         """
         print("E step:")
         for i in range(len(self.document_topic_prob)):
@@ -133,12 +133,11 @@ class Corpus(object):
                 temp.append(r)
             res = normalize(np.transpose(temp))
             self.topic_prob[i] = np.transpose(normalize(np.transpose(temp)))
-
+        
     def maximization_step(self, number_of_topics):
         """ The M-step updates P(w | z)
         """
         print("M step:")
-
 
         # update P(w | z)
         for z in range(number_of_topics):
@@ -156,15 +155,14 @@ class Corpus(object):
                 for w in range(self.vocabulary_size):
                     s += self.term_doc_matrix[d][w] * self.topic_prob[d, z, w]
                 self.document_topic_prob[d][z] = s
-            self.document_topic_prob = normalize(self.document_topic_prob)
+            self.topic_word_prob = normalize(self.document_topic_prob)
 
     def calculate_likelihood(self, number_of_topics):
         """ Calculate the current log-likelihood of the model using
         the model's updated probability matrices
         Append the calculated log-likelihood to self.likelihoods
         """
-        prod = np.matmul(self.document_topic_prob, self.topic_word_prob)
-        self.likelihoods.append(np.sum(np.log(prod) * self.term_doc_matrix))
+        self.likelihoods.append(np.sum(np.log(self.document_topic_prob @ self.topic_word_prob) * self.term_doc_matrix))
         return self.likelihoods[-1]
 
     def plsa(self, number_of_topics, max_iter, epsilon):
@@ -184,15 +182,28 @@ class Corpus(object):
 
         # P(z | d) P(w | z)
         self.initialize(number_of_topics, random=True)
-        # Run the EM algorithm
         current_likelihood = 0.0
+
+        last_topic_prob = self.topic_prob.copy()
 
         for iteration in range(max_iter):
             print("Iteration #" + str(iteration + 1) + "...")
-
             self.expectation_step()
+            diff = abs(self.topic_prob - last_topic_prob)
+            L1 = diff.sum()
+            print ("L1: ", L1)
+            print (last_topic_prob)
+            # assert L1 > 0
+            last_topic_prob = self.topic_prob.copy()
+
             self.maximization_step(number_of_topics)
             self.calculate_likelihood(number_of_topics)
+            tmp_likelihood = self.calculate_likelihood(number_of_topics)
+            if iteration > 100 and abs(current_likelihood - tmp_likelihood) < epsilon/10:
+                print('Stopping', tmp_likelihood)
+                return tmp_likelihood
+            current_likelihood = tmp_likelihood
+            print(max(self.likelihoods))
 
 
 
