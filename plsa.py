@@ -184,15 +184,30 @@ class Corpus(object):
 
         # P(z | d) P(w | z)
         self.initialize(number_of_topics, random=True)
+        
         # Run the EM algorithm
         current_likelihood = 0.0
 
+        last_topic_prob = self.topic_prob.copy()
+
         for iteration in range(max_iter):
             print("Iteration #" + str(iteration + 1) + "...")
-
             self.expectation_step()
+            diff = abs(self.topic_prob - last_topic_prob)
+            L1 = diff.sum()
+            print ("L1: ", L1)
+            print (last_topic_prob)
+            # assert L1 > 0
+            last_topic_prob = self.topic_prob.copy()
+
             self.maximization_step(number_of_topics)
-            print(self.calculate_likelihood(number_of_topics))
+            self.calculate_likelihood(number_of_topics)
+            tmp_likelihood = self.calculate_likelihood(number_of_topics)
+            if iteration > 100 and abs(current_likelihood - tmp_likelihood) < epsilon/10:
+                print('Stopping', tmp_likelihood)
+                return tmp_likelihood
+            current_likelihood = tmp_likelihood
+            print(max(self.likelihoods))
 
 
 
