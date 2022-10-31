@@ -160,7 +160,7 @@ class Corpus(object):
         Append the calculated log-likelihood to self.likelihoods
 
         """
-        dw_prod = np.log(self.document_topic_prob @ self.topic_word_prob) * self.term_doc_matrix
+        dw_prod = np.log(np.matmul(self.document_topic_prob, self.topic_word_prob)) * self.term_doc_matrix
         self.likelihoods.append(np.sum(dw_prod))
 
     def plsa(self, number_of_topics, max_iter, epsilon):
