@@ -192,7 +192,7 @@ class Corpus(object):
 
             self.expectation_step()
             self.maximization_step(number_of_topics)
-            self.calculate_likelihood(number_of_topics)
+            print(self.calculate_likelihood(number_of_topics))
 
 
 
